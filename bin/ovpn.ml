@@ -62,8 +62,7 @@ let connect_vpn config =
   Unix.sleep 5;
   printf "Connecting now...\n";
   print_flush ();
-  connect config;
-  ()
+  connect config
 ;;
 
 let check_modes i arg ~conf =
