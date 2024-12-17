@@ -1,0 +1,4 @@
+(executable
+ (public_name ovpn)
+ (name ovpn)
+ (libraries ovpn core unix str))
