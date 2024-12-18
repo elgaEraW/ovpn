@@ -1,5 +1,3 @@
-open Format
-
 type config =
   { mutable country : string
   ; mutable location : string
@@ -29,11 +27,15 @@ let prepare_config_list () =
   config_map
 ;;
 
+let pp = Format.printf
+let flush = Format.print_flush
+let sp = Format.sprintf
+
 let print_config config =
-  printf "Country: %s\n" config.country;
-  printf "Location: %s\n" config.location;
-  printf "Trasport Layer: %s\n" config.tp_layer;
-  print_flush ();
+  pp "Country: %s\n" config.country;
+  pp "Location: %s\n" config.location;
+  pp "Trasport Layer: %s\n" config.tp_layer;
+  flush ();
   ()
 ;;
 
@@ -45,7 +47,7 @@ let remove_dns_from_interface () =
 let connect config =
   let _ =
     Stdlib.Sys.command
-      (Stdlib.Format.sprintf
+      (sp
          "sudo openvpn --config /etc/openvpn/%s-%s.prod.surfshark.com_%s.ovpn \
           --auth-user-pass /home/elgaeraw/.config/.vpn/auth"
          config.country
@@ -56,12 +58,12 @@ let connect config =
 ;;
 
 let connect_vpn config =
-  printf "Connecting to the following config in 5 secs!\n";
+  pp "Connecting to the following config in 5 secs!\n";
   print_config config;
   remove_dns_from_interface ();
   Unix.sleep 5;
-  printf "Connecting now...\n";
-  print_flush ();
+  pp "Connecting now...\n";
+  flush ();
   connect config
 ;;
 
@@ -79,13 +81,13 @@ let check_modes i arg ~conf =
 ;;
 
 let take_input lst label =
-  printf "%s List: \n" label;
+  pp "%s List: \n" label;
   let srt_lst = List.sort String.compare lst in
-  srt_lst |> List.iter (printf "%s \t");
-  printf "\n";
+  srt_lst |> List.iter (pp "%s \t");
+  pp "\n";
   let item_def = List.hd srt_lst in
-  printf "Select %s [%s]: " label item_def;
-  print_flush ();
+  pp "Select %s [%s]: " label item_def;
+  flush ();
   match In_channel.input_line In_channel.stdin with
   | Some l when not (Base.String.is_empty l) -> l
   | _ -> item_def
@@ -96,18 +98,17 @@ let main () =
   Sys.argv |> Array.iteri (check_modes ~conf);
   if not conf.is_manual
   then (
-    printf
-      "AutoConnect Mode!!! If you want to set manual location pass -m in args: vpn -m\n";
-    printf
+    pp "AutoConnect Mode!!! If you want to set manual location pass -m in args: vpn -m\n";
+    pp
       "OR you can directly specify the country and location code: vpn -c <country_code> \
        -l <location_code>\n";
-    printf "For TCP layer use -tcp in args: vpn -m -tcp\n";
+    pp "For TCP layer use -tcp in args: vpn -m -tcp\n";
     conf.country <- "in";
     conf.location <- "mum";
     connect_vpn conf)
   else (
-    print_flush ();
-    printf "Manual Mode!!!\n";
+    flush ();
+    pp "Manual Mode!!!\n";
     let config_map = prepare_config_list () in
     let countries = Base.Hashtbl.keys config_map in
     if Base.String.is_empty conf.country && Base.String.is_empty conf.location
@@ -125,7 +126,7 @@ let main () =
           (Base.Hash_set.to_list locations)
         |> List.is_empty
       then (
-        printf
+        pp
           "Entered location does not exist in the selected country. Select a location \
            from below:\n";
         conf.location <- take_input (Base.Hash_set.to_list locations) "Location"))
@@ -133,16 +134,14 @@ let main () =
     then (
       if List.filter (fun x -> String.equal x conf.country) countries |> List.is_empty
       then (
-        printf
-          "Entered country does not exist in the options. Select a country from below:\n";
+        pp "Entered country does not exist in the options. Select a country from below:\n";
         conf.country <- take_input countries "Country");
       let locations = Base.Hashtbl.find_exn config_map conf.country in
       conf.location <- take_input (Base.Hash_set.to_list locations) "Location")
     else (
       if List.filter (fun x -> String.equal x conf.country) countries |> List.is_empty
       then (
-        printf
-          "Entered country does not exist in the options. Select a country from below:\n";
+        pp "Entered country does not exist in the options. Select a country from below:\n";
         conf.country <- take_input countries "Country");
       let locations = Base.Hashtbl.find_exn config_map conf.country in
       if
@@ -151,7 +150,7 @@ let main () =
           (Base.Hash_set.to_list locations)
         |> List.is_empty
       then (
-        printf
+        pp
           "Entered location does not exist in the selected country. Select a location \
            from below:\n";
         conf.location <- take_input (Base.Hash_set.to_list locations) "Location"));
