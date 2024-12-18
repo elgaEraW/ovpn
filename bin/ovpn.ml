@@ -25,7 +25,7 @@ let check_and_insert ~config_map config =
 
 let prepare_config_list () =
   let config_map = Base.Hashtbl.create (module Base.String) in
-  Array.iter (check_and_insert ~config_map) (Sys.readdir "/etc/openvpn/");
+  Sys.readdir "/etc/openvpn/" |> Array.iter (check_and_insert ~config_map);
   config_map
 ;;
 
@@ -81,7 +81,7 @@ let check_modes i arg ~conf =
 let take_input lst label =
   printf "%s List: \n" label;
   let srt_lst = List.sort String.compare lst in
-  List.iter (printf "%s \t") srt_lst;
+  srt_lst |> List.iter (printf "%s \t");
   printf "\n";
   let item_def = List.hd srt_lst in
   printf "Select %s [%s]: " label item_def;
@@ -93,7 +93,7 @@ let take_input lst label =
 
 let main () =
   let conf = { country = ""; location = ""; tp_layer = "udp"; is_manual = false } in
-  Array.iteri (check_modes ~conf) Sys.argv;
+  Sys.argv |> Array.iteri (check_modes ~conf);
   if not conf.is_manual
   then (
     printf
