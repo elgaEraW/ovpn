@@ -80,7 +80,7 @@ let check_modes i arg ~conf =
   | _ -> ()
 ;;
 
-let take_input lst label =
+let rec take_input lst label =
   pp "%s List: \n" label;
   let srt_lst = List.sort String.compare lst in
   srt_lst |> List.iter (pp "%s \t");
@@ -89,6 +89,10 @@ let take_input lst label =
   pp "Select %s [%s]: " label item_def;
   flush ();
   match In_channel.input_line In_channel.stdin with
+  | Some l
+    when (not (Base.String.is_empty l)) && not (List.exists (Base.String.equal l) lst) ->
+    pp "Entered value does not exist in list. Please try again!\n";
+    take_input lst label
   | Some l when not (Base.String.is_empty l) -> l
   | _ -> item_def
 ;;
